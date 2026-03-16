@@ -1,0 +1,14 @@
+chembl
+clinicaltrials
+config
+embedding
+fda
+ingestion
+models
+opentargets
+recommendation
+retrieval
+service
+storage
+tests
+utils

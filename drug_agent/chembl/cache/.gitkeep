@@ -1,0 +1,10 @@
+# Cache directory for ChEMBL API responses
+# This directory stores cached API responses to avoid redundant calls
+
+# Files stored here:
+# - molecules_cache.json
+# - mechanisms_cache.json
+# - indications_cache.json
+# - targets_cache.json
+# - chembl_embeddings_cache.json
+# - ingestion_checkpoint.json

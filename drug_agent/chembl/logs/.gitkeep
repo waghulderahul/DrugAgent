@@ -1,0 +1,3 @@
+# Logs directory for ChEMBL ingestion process
+# Log files stored here:
+# - chembl_ingestion.log

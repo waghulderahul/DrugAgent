@@ -1,0 +1,247 @@
+# ChEMBL Integration Configuration
+# =================================
+# Configuration for fetching and ingesting ChEMBL drug data
+
+# ChEMBL API Configuration
+chembl_api:
+  # Base URL for ChEMBL API (usually not needed with Python client)
+  base_url: "https://www.ebi.ac.uk/chembl/api/data"
+  
+  # Request settings
+  timeout_seconds: 60
+  max_retries: 3
+  retry_delay_seconds: 2
+  
+  # Batch settings for API calls
+  batch_size: 100
+  
+  # Rate limiting (requests per second)
+  rate_limit: 10
+
+# Data Fetching Configuration
+fetching:
+  # Only fetch approved drugs (Phase 4)
+  max_phase: 4
+  
+  # Include mechanisms of action
+  fetch_mechanisms: true
+  
+  # Include drug indications
+  fetch_indications: true
+  
+  # Include target information (for gene symbols)
+  fetch_targets: true
+  
+  # Include bioactivity data (optional, increases data size)
+  fetch_bioactivities: false
+  
+  # Molecule types to include (null = all)
+  molecule_types:
+    - "Small molecule"
+    - "Antibody"
+    - "Protein"
+    - "Oligosaccharide"
+    - "Enzyme"
+  
+  # Maximum drugs to fetch (null = all approved)
+  max_drugs: null
+  
+  # Skip drugs without mechanisms
+  require_mechanism: false
+
+# Caching Configuration
+cache:
+  # Enable caching of API responses
+  enabled: true
+  
+  # Cache directory (relative to chembl folder)
+  directory: "./cache"
+  
+  # Cache expiry in days (0 = never expire)
+  expiry_days: 30
+  
+  # Cache file names
+  files:
+    molecules: "molecules_cache.json"
+    mechanisms: "mechanisms_cache.json"
+    indications: "indications_cache.json"
+    targets: "targets_cache.json"
+
+# Normalization Configuration
+normalization:
+  # Maximum synonyms to keep per drug
+  max_synonyms: 10
+  
+  # Maximum indications to keep per drug
+  max_indications: 20
+  
+  # Maximum mechanisms to keep per drug
+  max_mechanisms: 10
+  
+  # Map max_phase to approval status
+  phase_mapping:
+    4: "FDA Approved"
+    3: "Phase III Clinical Trial"
+    2: "Phase II Clinical Trial"
+    1: "Phase I Clinical Trial"
+    0.5: "Early Phase I"
+    0: "Preclinical"
+    null: "Unknown"
+  
+  # Action type normalization
+  action_type_mapping:
+    "INHIBITOR": "Inhibitor"
+    "ANTAGONIST": "Antagonist"
+    "AGONIST": "Agonist"
+    "BLOCKER": "Blocker"
+    "MODULATOR": "Modulator"
+    "ACTIVATOR": "Activator"
+    "OPENER": "Opener"
+    "BINDER": "Binder"
+    "OTHER": "Other"
+
+# Document Generation Configuration
+document_generation:
+  # Template for text_content generation
+  # Available placeholders: {drug_name}, {chembl_id}, {approval_status}, 
+  # {molecule_type}, {synonyms}, {mechanisms}, {indications}, {gene_symbols}
+  text_template: |
+    {drug_name} ({chembl_id}) is a {approval_status} {molecule_type}.
+    {synonyms_text}
+    {mechanisms_text}
+    {indications_text}
+    Target genes: {gene_symbols}.
+  
+  # Maximum text content length (characters)
+  max_text_length: 2000
+  
+  # Include chemical properties in text
+  include_properties: false
+
+# Qdrant Storage Configuration
+qdrant:
+  # Collection name for ChEMBL data
+  collection_name: "ChEMBL_drugs"
+  
+  # Vector configuration (must match embedding model)
+  vector_size: 768
+  distance_metric: "Cosine"
+  
+  # Use same connection as main Drug_agent
+  # (inherits from parent config / environment variables)
+  use_parent_connection: true
+  
+  # Batch size for upserting to Qdrant
+  upsert_batch_size: 100
+  
+  # Create payload indexes for filtering
+  payload_indexes:
+    - field: "target_gene_symbols"
+      type: "keyword"
+    - field: "chembl_id"
+      type: "keyword"
+    - field: "drug_name"
+      type: "text"
+    - field: "indication_names"
+      type: "text"
+    - field: "approval_status"
+      type: "keyword"
+    - field: "max_phase"
+      type: "integer"
+    - field: "action_types"
+      type: "keyword"
+
+# Embedding Configuration
+embedding:
+  # Use same embedder as main Drug_agent (PubMedBERT)
+  use_parent_embedder: true
+  
+  # Model name (if not using parent)
+  model_name: "NeuML/pubmedbert-base-embeddings"
+  
+  # Batch size for embedding generation
+  batch_size: 32
+  
+  # Cache embeddings
+  cache_enabled: true
+  cache_file: "./cache/chembl_embeddings_cache.json"
+
+# Ingestion Configuration
+ingestion:
+  # Enable progress tracking
+  show_progress: true
+  
+  # Checkpoint frequency (save state every N drugs)
+  checkpoint_frequency: 500
+  
+  # Checkpoint file
+  checkpoint_file: "./cache/ingestion_checkpoint.json"
+  
+  # Continue from checkpoint if exists
+  resume_from_checkpoint: true
+  
+  # Parallel processing
+  max_workers: 4
+  
+  # Validate data before ingestion
+  validate_data: true
+  
+  # Skip drugs with errors (vs fail entire batch)
+  skip_on_error: true
+
+# Search Configuration (for unified search)
+search:
+  # Collections to search
+  collections:
+    - "Drug_agent"
+    - "ChEMBL_drugs"
+  
+  # Default number of results per collection
+  results_per_collection: 30
+  
+  # Final merged results
+  final_top_k: 20
+  
+  # Minimum relevance score to include
+  min_relevance_score: 0.3
+  
+  # Merging strategy: "union", "intersection", "weighted"
+  merge_strategy: "union"
+  
+  # Deduplication field
+  dedup_field: "drug_name"
+  
+  # Scoring weights for unified ranking
+  ranking_weights:
+    relevance: 0.30
+    gene_match: 0.35
+    mechanism_evidence: 0.20
+    approval_status: 0.15
+
+# Logging Configuration
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "./logs/chembl_ingestion.log"
+  
+  # Log API calls
+  log_api_calls: false
+  
+  # Log progress every N items
+  progress_log_frequency: 100
+
+# Validation Configuration
+validation:
+  # Required fields for a valid drug document
+  required_fields:
+    - "chembl_id"
+    - "drug_name"
+  
+  # Warn if these fields are missing
+  recommended_fields:
+    - "mechanisms"
+    - "target_gene_symbols"
+    - "approval_status"
+  
+  # Maximum allowed missing rate before failing
+  max_missing_rate: 0.1

@@ -1,0 +1,15 @@
+{
+  "total_molecules_fetched": 4005,
+  "total_mechanisms_fetched": 3715,
+  "total_indications_fetched": 39787,
+  "documents_created": 4005,
+  "documents_ingested": 4005,
+  "documents_with_mechanisms": 2939,
+  "documents_with_indications": 3272,
+  "documents_with_gene_targets": 2326,
+  "unique_gene_symbols": 1251,
+  "unique_diseases": 3759,
+  "errors": 0,
+  "warnings": 0,
+  "duration_seconds": 483.788044
+}
