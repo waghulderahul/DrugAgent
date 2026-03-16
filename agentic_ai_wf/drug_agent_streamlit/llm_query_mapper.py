@@ -417,9 +417,9 @@ def _build_request(
     llm_pathways = [
         PathwayContext(
             pathway_name=p.get("pathway_name", ""),
-            direction=p.get("direction", "up"),
-            fdr=float(p.get("fdr", 0.05)),
-            gene_count=int(p.get("gene_count", 0)),
+            direction=p.get("direction") or "up",
+            fdr=float(p.get("fdr") or 0.05),
+            gene_count=int(p.get("gene_count") or 0),
         )
         for p in parsed.get("pathways", [])
         if p.get("pathway_name")
