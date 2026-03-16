@@ -5,3 +5,5 @@ __pycache__/
 .env 
 *.egg-info/ 
 *.log 
+agentic_ai_wf/drug_agent/raw_data/kg.csv 
+agentic_ai_wf/drug_agent/embedding_cache/embeddings_cache.json 
