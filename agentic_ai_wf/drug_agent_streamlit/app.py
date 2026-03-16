@@ -15,6 +15,13 @@ from datetime import datetime
 import pandas as pd
 import streamlit as st
 
+# Load Streamlit secrets into environment variables
+try:
+    for key, value in st.secrets.items():
+        os.environ[key] = str(value)
+except Exception:
+    pass  # Running locally without secrets
+
 from agentic_ai_wf.drug_agent.service.drug_agent_service import get_service
 from agentic_ai_wf.drug_agent.service.schemas import DrugCandidate, DrugQueryResponse
 from agentic_ai_wf.drug_agent_streamlit.file_parser import SUPPORTED_EXTENSIONS, FileSummary, parse_uploaded_file
